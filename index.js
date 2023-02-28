@@ -1,5 +1,5 @@
 require("dotenv").config();
-
+const fs = require('fs')
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
@@ -9,8 +9,8 @@ const mongoose = require("mongoose");
 const { productsRoute } = require("./routes/product");
 const { usersRoute } = require("./routes/user");
 const jwt = require("jsonwebtoken");
-const { createUsers } = require("./controller/auth");
 const { authRouter } = require("./routes/auth");
+const publicKey = fs.readFileSync(path.resolve(__dirname, 'public.key'))
 //db connection
 main().catch((err) => console.log(err));
 
@@ -20,25 +20,25 @@ async function main() {
 }
 
 //BOdy parser
-const auth = ((req, res, next) => {
+const auth = (req, res, next) => {
   try {
     const token = req.get("Authorization").split("Bearer ")[1];
-    const decoded = jwt.verify(token, process.env.SECRET);
+    const decoded = jwt.verify(token, publicKey);
     if (decoded.email) {
       next();
     } else {
       res.send(401);
     }
   } catch (err) {
-   res.send(401);
+    res.send(401);
   }
-});
+};
 server.use(cors());
 server.use(express.json());
 server.use(express.static(path.resolve(process.env.PUBLIC_DIR)));
-server.use('/auth', authRouter)
-server.use("/products", auth,  productsRoute);
-server.use("/users", auth,  usersRoute);
+server.use("/auth", authRouter);
+server.use("/products", auth, productsRoute);
+server.use("/users", auth, usersRoute);
 server.listen(process.env.PORT, () => {
   console.log("SERVER START");
 });

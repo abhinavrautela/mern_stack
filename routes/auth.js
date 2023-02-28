@@ -1,6 +1,8 @@
 const express = require('express')
 const router = express.Router();
-const { createUsers } = require('../controller/auth')
-router.get('/signUp', createUsers)
+const { signUp, login } = require('../controller/auth')
+router
+.get('/signUp', signUp)
+.get('/login', login)
 
 exports.authRouter = router
