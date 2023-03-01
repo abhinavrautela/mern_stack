@@ -2,8 +2,25 @@ const modle = require("../model/product");
 
 const Product = modle.Product;
 exports.getAllProduct = async (req, res) => {
-  const products = await Product.find(  );
-  res.json(products);
+  const products = Product.find();
+  const pageNo = req.query.page;
+  if (req.query.sort) {
+    const sortedProduct = await products
+      .sort({ [req.query.sort]: req.query.order })
+      .skip(3 * (pageNo - 1))
+      .limit(3)
+      .exec();
+    res.json(sortedProduct);
+  } else if (req.query.page) {
+    const product = await products
+      .skip(3 * (pageNo - 1))
+      .limit(3)
+      .exec();
+    res.status(201).json(product);
+  } else {
+    const product = await products.exec();
+    res.status(201).json(product);
+  }
 };
 
 exports.getProduct = async (req, res) => {
@@ -37,7 +54,9 @@ exports.deleteProduct = async (req, res) => {
 exports.replaceProduct = async (req, res) => {
   const id = req.params.id;
   try {
-    const doc = await Product.findOneAndReplace({ _id: id }, req.body, { new: true });
+    const doc = await Product.findOneAndReplace({ _id: id }, req.body, {
+      new: true,
+    });
     res.status(201).json(doc);
   } catch (err) {
     console.log(err);
@@ -48,10 +67,12 @@ exports.replaceProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   const id = req.params.id;
   try {
-    const doc = await Product.findOneAndUpdate({ _id: id }, req.body, { new: true });
+    const doc = await Product.findOneAndUpdate({ _id: id }, req.body, {
+      new: true,
+    });
     res.status(201).json(doc);
   } catch (err) {
     console.log(err);
     res.status(400).json(err);
   }
-}
+};
